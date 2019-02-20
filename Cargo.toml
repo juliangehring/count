@@ -1,0 +1,16 @@
+[package]
+name = "counter"
+version = "0.1.0"
+authors = ["Julian Gehring <juliangehring@users.noreply.github.com>"]
+edition = "2018"
+
+[dependencies]
+failure = "0.1.5"
+hashbrown = "0.1.8"
+rayon = "1.0.3"
+signal-hook = "0.1.7"
+structopt = "0.2.14"
+
+[profile.release]
+lto = true
+overflow-checks = false
