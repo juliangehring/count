@@ -1,5 +1,5 @@
 [package]
-name = "counter"
+name = "count"
 version = "0.1.0"
 authors = ["Julian Gehring <juliangehring@users.noreply.github.com>"]
 edition = "2018"
