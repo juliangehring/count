@@ -12,7 +12,7 @@ main() {
 
     cross test --target $TARGET
 
-    cross run --target $TARGET -- --top 3 test/data/toplevel-1k.txt
+    cross run --target $TARGET -- --top 3 tests/data/toplevel-1k.txt
 }
 
 # we don't run the "test phase" when doing deploys
