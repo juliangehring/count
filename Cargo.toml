@@ -8,7 +8,7 @@ edition = "2018"
 failure = "0.1.5"
 hashbrown = "0.1.8"
 rayon = "1.0.3"
-signal-hook = "0.1.7"
+signal-hook = "0.1.8"
 structopt = "0.2.14"
 
 [profile.release]
