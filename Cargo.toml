@@ -10,6 +10,7 @@ hashbrown = "0.1.8"
 rayon = "1.0.3"
 signal-hook = "0.1.8"
 structopt = "0.2.14"
+predicates = "1.0.0"
 
 [profile.release]
 lto = true
