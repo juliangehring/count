@@ -43,6 +43,26 @@ pub struct Config {
     pub input: Option<String>,
 }
 
+pub fn run(config: Config) -> Result<(), Error> {
+    let sig_pipe = watch_sig_pipe()?;
+
+    let reader = create_reader(&config.input)?;
+
+    let counter = count_items(reader)?;
+
+    let mut counts: Vec<_> = counter.iter().collect();
+    sort_counts(&mut counts, &config.sort_by);
+
+    let n = config.top.unwrap_or_else(|| counts.len());
+
+    let stdout = stdout();
+    let handle = stdout.lock();
+
+    output_counts(handle, counts, n, sig_pipe)?;
+
+    Ok(())
+}
+
 fn create_reader(input: &Option<String>) -> Result<Box<BufRead>, Error> {
     let reader: Box<BufRead> = match input {
         Some(file_name) => Box::new(BufReader::new(File::open(file_name)?)),
@@ -51,7 +71,10 @@ fn create_reader(input: &Option<String>) -> Result<Box<BufRead>, Error> {
     Ok(reader)
 }
 
-fn sort_counts<T: Ord + Sync>(counts: &mut Vec<(&String, &T)>, sorting_order: &SortingOrder) {
+fn sort_counts<S: Ord + Sync, T: Ord + Sync>(
+    counts: &mut Vec<(&S, &T)>,
+    sorting_order: &SortingOrder,
+) {
     match sorting_order {
         SortingOrder::Key => {
             counts.par_sort_unstable_by(|a, b| a.0.cmp(b.0).then(a.1.cmp(b.1).reverse()))
@@ -61,12 +84,6 @@ fn sort_counts<T: Ord + Sync>(counts: &mut Vec<(&String, &T)>, sorting_order: &S
         }
         SortingOrder::None => (),
     }
-}
-
-fn watch_sig_pipe() -> Result<Arc<AtomicBool>, Error> {
-    let sig_pipe = Arc::new(AtomicBool::new(false));
-    signal_hook::flag::register(signal_hook::SIGPIPE, Arc::clone(&sig_pipe))?;
-    Ok(sig_pipe)
 }
 
 fn count_items(reader: Box<BufRead>) -> Result<HashMap<std::string::String, u64>, Error> {
@@ -94,22 +111,28 @@ fn output_counts<T: Write>(
     Ok(())
 }
 
-pub fn run(config: Config) -> Result<(), Error> {
-    let sig_pipe = watch_sig_pipe()?;
+fn watch_sig_pipe() -> Result<Arc<AtomicBool>, Error> {
+    let sig_pipe = Arc::new(AtomicBool::new(false));
+    signal_hook::flag::register(signal_hook::SIGPIPE, Arc::clone(&sig_pipe))?;
+    Ok(sig_pipe)
+}
 
-    let reader = create_reader(&config.input)?;
+#[test]
+fn test_sort_counts_by_key() {
+    let mut input = vec![(&"b", &3), (&"c", &2), (&"a", &1)];
+    let output = vec![(&"a", &1), (&"b", &3), (&"c", &2)];
 
-    let counter = count_items(reader)?;
+    sort_counts(&mut input, &SortingOrder::Key);
 
-    let mut counts: Vec<_> = counter.iter().collect();
-    sort_counts(&mut counts, &config.sort_by);
+    assert_eq!(input, output);
+}
 
-    let n = config.top.unwrap_or_else(|| counts.len());
+#[test]
+fn test_sort_counts_by_counts() {
+    let mut input = vec![(&"c", &2), (&"a", &1), (&"b", &3)];
+    let output = vec![(&"b", &3), (&"c", &2), (&"a", &1)];
 
-    let stdout = stdout();
-    let handle = stdout.lock();
+    sort_counts(&mut input, &SortingOrder::Count);
 
-    output_counts(handle, counts, n, sig_pipe)?;
-
-    Ok(())
+    assert_eq!(input, output);
 }
