@@ -17,8 +17,9 @@ An anecdotal benchmark: Count the top-level domains of the Alexa top 1 million w
 make benchmark
 ```
 
-| Tool        | Time [ms] |
-| ----------- | --------: |
-| rusty count |       136 |
-| awk         |       207 |
-| unix tools  |      4101 |
+| Tool                  | Time [ms] |
+| --------------------- | --------: |
+| rusty count (LTO)     |       124 |
+| rusty count (default) |       150 |
+| awk                   |       207 |
+| unix tools            |      4101 |

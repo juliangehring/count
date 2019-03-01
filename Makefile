@@ -11,7 +11,7 @@ $(TEST_FILE): top-1m.csv
 
 $(TMP_DIR):
 	# create a 100MB RAM disk for benchmarking
-	diskutil partitionDisk $(hdiutil attach -nomount ram://204800) 1 GPTFormat APFS 'ramdisk' '100%'
+	diskutil partitionDisk $$(hdiutil attach -nomount ram://204800) 1 GPTFormat APFS 'ramdisk' '100%'
 
 top-1m.csv:
 	curl -s -o $@.zip https://s3.amazonaws.com/alexa-static/top-1m.csv.zip
@@ -26,8 +26,8 @@ bench-unix: $(TEST_FILE)
 	hyperfine --style basic --warmup 1 "gsort --parallel=4 $< | uniq -c | gsort --parallel=4 -k1,1 -rn | head -n 10"
 
 bench-awk: $(TEST_FILE)
-	hyperfine -m 20 --style basic --warmup 3 "gawk -f test/utils/pattern.awk $(TEST_FILE) | head -n 10"
+	hyperfine -m 100 --style basic --warmup 3 "gawk -f tests/utils/pattern.awk $(TEST_FILE) | head -n 10"
 
 bench-bin: $(TEST_FILE)
 	cargo build --release && \
-	hyperfine -m 20 --style basic --warmup 3 "target/release/count --top 10 $<"
+	hyperfine -m 100 --style basic --warmup 3 "target/release/count --top 10 $<"

@@ -36,11 +36,11 @@ pub struct Config {
             case_insensitive = "true"
         )
     )]
-    pub sort_by: SortingOrder,
+    sort_by: SortingOrder,
     #[structopt(long = "top")]
-    pub top: Option<usize>,
+    top: Option<usize>,
     #[structopt()]
-    pub input: Option<String>,
+    input: Option<String>,
 }
 
 pub fn run(config: Config) -> Result<(), Error> {
@@ -117,22 +117,28 @@ fn watch_sig_pipe() -> Result<Arc<AtomicBool>, Error> {
     Ok(sig_pipe)
 }
 
-#[test]
-fn test_sort_counts_by_key() {
-    let mut input = vec![(&"b", &3), (&"c", &2), (&"a", &1)];
-    let output = vec![(&"a", &1), (&"b", &3), (&"c", &2)];
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    sort_counts(&mut input, &SortingOrder::Key);
+    #[test]
+    fn test_sort_counts_by_key() {
+        let mut input = vec![(&"b", &3), (&"c", &2), (&"a", &1)];
+        let output = vec![(&"a", &1), (&"b", &3), (&"c", &2)];
 
-    assert_eq!(input, output);
-}
+        sort_counts(&mut input, &SortingOrder::Key);
 
-#[test]
-fn test_sort_counts_by_counts() {
-    let mut input = vec![(&"c", &2), (&"a", &1), (&"b", &3)];
-    let output = vec![(&"b", &3), (&"c", &2), (&"a", &1)];
+        assert_eq!(input, output);
+    }
 
-    sort_counts(&mut input, &SortingOrder::Count);
+    #[test]
+    fn test_sort_counts_by_counts() {
+        let mut input = vec![(&"c", &2), (&"a", &1), (&"b", &3)];
+        let output = vec![(&"b", &3), (&"c", &2), (&"a", &1)];
 
-    assert_eq!(input, output);
+        sort_counts(&mut input, &SortingOrder::Count);
+
+        assert_eq!(input, output);
+    }
+
 }
