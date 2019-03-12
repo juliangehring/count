@@ -6,7 +6,7 @@ NUM_CORES=$(nproc --all)
 .PHONY: all
 all: benchmark
 
-$(TEST_FILE): top-1m.csv
+$(TEST_FILE): top-1m.csv $(TMP_DIR)
 	awk -v FS=',' '{n=split($$2, parts, "."); print parts[n]}' $< >| $@
 
 $(TMP_DIR):
