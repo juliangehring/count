@@ -71,6 +71,16 @@ fn create_reader(input: &Option<String>) -> Result<Box<BufRead>, Error> {
     Ok(reader)
 }
 
+fn count_items(reader: Box<BufRead>) -> Result<HashMap<std::string::String, u64>, Error> {
+    let mut counter: HashMap<_, u64> = Default::default();
+
+    for line in reader.lines() {
+        *counter.entry(line?).or_insert(0) += 1;
+    }
+
+    Ok(counter)
+}
+
 fn sort_counts<S: Ord + Sync, T: Ord + Sync>(
     counts: &mut Vec<(&S, &T)>,
     sorting_order: &SortingOrder,
@@ -84,16 +94,6 @@ fn sort_counts<S: Ord + Sync, T: Ord + Sync>(
         }
         SortingOrder::None => (),
     }
-}
-
-fn count_items(reader: Box<BufRead>) -> Result<HashMap<std::string::String, u64>, Error> {
-    let mut counter: HashMap<_, u64> = Default::default();
-
-    for line in reader.lines() {
-        *counter.entry(line?).or_insert(0) += 1;
-    }
-
-    Ok(counter)
 }
 
 fn output_counts<T: Write>(
