@@ -1,5 +1,6 @@
 use failure::Error;
 use hashbrown::HashMap;
+//use rayon::prelude::*;
 use rayon::slice::ParallelSliceMut;
 use signal_hook;
 use std::{
@@ -71,11 +72,25 @@ fn create_reader(input: &Option<String>) -> Result<Box<BufRead>, Error> {
     Ok(reader)
 }
 
-fn count_items(reader: Box<BufRead>) -> Result<HashMap<std::string::String, u64>, Error> {
+fn count_items(mut reader: Box<BufRead>) -> Result<HashMap<std::string::String, u64>, Error> {
     let mut counter: HashMap<_, u64> = Default::default();
 
-    for line in reader.lines() {
-        *counter.entry(line?).or_insert(0) += 1;
+    let mut buf = String::with_capacity(64);
+    while let Ok(n) = reader.read_line(&mut buf) {
+        if n < 2 {
+            break;
+        }
+        // trim trailing newline
+        buf.truncate(n - 1);
+        match counter.get_mut(&buf) {
+            Some(count) => {
+                *count += 1;
+            }
+            None => {
+                counter.insert(buf.to_owned(), 1);
+            }
+        };
+        buf.clear();
     }
 
     Ok(counter)
