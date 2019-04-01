@@ -1,7 +1,9 @@
 use failure::Error;
 use hashbrown::HashMap;
-//use rayon::prelude::*;
-use rayon::slice::ParallelSliceMut;
+use rayon::{
+    prelude::{IntoParallelRefIterator, ParallelIterator},
+    slice::ParallelSliceMut,
+};
 use signal_hook;
 use std::{
     cmp::Ord,
@@ -51,7 +53,7 @@ pub fn run(config: Config) -> Result<(), Error> {
 
     let counter = count_items(reader)?;
 
-    let mut counts: Vec<_> = counter.iter().collect();
+    let mut counts: Vec<_> = counter.par_iter().collect();
     sort_counts(&mut counts, &config.sort_by);
 
     let n = config.top.unwrap_or_else(|| counts.len());
@@ -72,16 +74,22 @@ fn create_reader(input: &Option<String>) -> Result<Box<BufRead>, Error> {
     Ok(reader)
 }
 
-fn count_items(mut reader: Box<BufRead>) -> Result<HashMap<std::string::String, u64>, Error> {
+fn count_items(mut reader: Box<BufRead>) -> Result<HashMap<Vec<u8>, u64>, Error> {
     let mut counter: HashMap<_, u64> = Default::default();
 
-    let mut buf = String::with_capacity(64);
-    while let Ok(n) = reader.read_line(&mut buf) {
-        if n < 2 {
-            break;
-        }
+    let mut buf = Vec::with_capacity(64);
+    while let Ok(n) = reader.read_until(b'\n', &mut buf) {
         // trim trailing newline
-        buf.truncate(n - 1);
+        if n == 0 {
+            break;
+        } else if buf[n - 1] == b'\n' {
+            let n_end = if n > 1 && buf[n - 2] == b'\r' {
+                n - 2
+            } else {
+                n - 1
+            };
+            buf.truncate(n_end);
+        }
         match counter.get_mut(&buf) {
             Some(count) => {
                 *count += 1;
@@ -102,10 +110,10 @@ fn sort_counts<S: Ord + Sync, T: Ord + Sync>(
 ) {
     match sorting_order {
         SortingOrder::Key => {
-            counts.par_sort_unstable_by(|a, b| a.0.cmp(b.0).then(a.1.cmp(b.1).reverse()))
+            counts.par_sort_unstable_by(|k, v| k.0.cmp(v.0).then(k.1.cmp(k.1).reverse()))
         }
         SortingOrder::Count => {
-            counts.par_sort_unstable_by(|a, b| a.1.cmp(b.1).reverse().then(a.0.cmp(b.0)))
+            counts.par_sort_unstable_by(|k, v| k.1.cmp(v.1).reverse().then(k.0.cmp(v.0)))
         }
         SortingOrder::None => (),
     }
@@ -113,12 +121,12 @@ fn sort_counts<S: Ord + Sync, T: Ord + Sync>(
 
 fn output_counts<T: Write>(
     mut io: T,
-    counts: Vec<(&String, &u64)>,
+    counts: Vec<(&Vec<u8>, &u64)>,
     n: usize,
     sig_pipe: Arc<AtomicBool>,
 ) -> Result<(), Error> {
-    for (key, count) in counts.iter().take(n) {
-        writeln!(io, "{}\t{}", key, count)?;
+    for (key, count) in counts.into_iter().take(n) {
+        writeln!(io, "{}\t{}", String::from_utf8(key.to_owned())?, count)?;
         if sig_pipe.load(Ordering::Relaxed) {
             break;
         }
