@@ -19,6 +19,7 @@ make benchmark
 
 | Tool                  | Time [ms] |
 | --------------------- | --------: |
+| rusty count (u8)      |        41 |
 | rusty count (LTO)     |       124 |
 | rusty count (default) |       150 |
 | awk                   |       207 |
