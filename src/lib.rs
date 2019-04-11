@@ -14,10 +14,7 @@ use std::{
         Arc,
     },
 };
-use structopt::{
-    clap::{_clap_count_exprs, arg_enum},
-    StructOpt,
-};
+use structopt::{clap::arg_enum, StructOpt};
 
 arg_enum! {
     #[derive(Debug)]
