@@ -23,11 +23,11 @@ top-1m.csv:
 benchmark: bench-unix bench-awk bench-bin
 
 bench-unix: $(TEST_FILE)
-	hyperfine --style basic --warmup 1 "gsort --parallel=4 $< | uniq -c | gsort --parallel=4 -k1,1 -rn | head -n 10"
+	hyperfine -m 10 --style basic --warmup 1 "gsort --parallel=4 $< | uniq -c | gsort --parallel=4 -k1,1 -rn | head -n 10"
 
 bench-awk: $(TEST_FILE)
-	hyperfine -m 100 --style basic --warmup 3 "gawk -f tests/utils/pattern.awk $(TEST_FILE) | head -n 10"
+	hyperfine -m 200 --style basic --warmup 3 "gawk -f tests/utils/pattern.awk $(TEST_FILE) | head -n 100"
 
 bench-bin: $(TEST_FILE)
 	cargo build --release && \
-	hyperfine -m 100 --style basic --warmup 3 "target/release/count --top 10 $<"
+	hyperfine -m 200 --style basic --warmup 3 "target/release/count --top 100 $<"
