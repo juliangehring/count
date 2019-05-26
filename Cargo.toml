@@ -5,7 +5,6 @@ authors = ["Julian Gehring <juliangehring@users.noreply.github.com>"]
 edition = "2018"
 
 [dependencies]
-failure = "0.1.5"
 hashbrown = {version = "0.3.0", features = ["rayon"]}
 rayon = "1.0.3"
 signal-hook = "0.1.9"
