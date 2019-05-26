@@ -1,47 +1,49 @@
-# Based on the "trust" template v0.1.2
-# https://github.com/japaric/trust/tree/v0.1.2
-
-dist: trusty
 language: rust
-services: docker
 sudo: required
 
 env:
   global:
+    # Default target on travis-ci.
+    # Used as conditional check in the install stage
+    - HOST=x86_64-unknown-linux-gnu
+    # Used on the deployment script
     - PROJECT_NAME=count
 
 matrix:
   include:
-    # Linux
-    - env: TARGET=x86_64-unknown-linux-gnu
-    - env: TARGET=x86_64-unknown-linux-musl
+    # Stable channel.
+    - os: linux
+      rust: stable
+      env: TARGET=x86_64-unknown-linux-gnu
+    - os: linux
+      rust: stable
+      env:
+        - TARGET=x86_64-unknown-linux-musl
+        - CC_x86_64_unknown_linux_musl=/usr/bin/musl-gcc
+    - os: osx
+      rust: stable
+      env: TARGET=x86_64-apple-darwin
 
-    # OSX
-    - env: TARGET=x86_64-apple-darwin
-      os: osx
-
-    # Testing other channels
-    - env: TARGET=x86_64-unknown-linux-gnu
-      rust: nightly
-    - env: TARGET=x86_64-apple-darwin
-      os: osx
-      rust: nightly
+    # Code formatting check
+    - os: linux
+      rust: stable
+      # skip the global install step
+      install:
+        - cargo install --debug --force rustfmt
+      script: cargo fmt -- --check
 
 before_install:
-  - set -e
-  - rustup self update
+  - ci/before_install.bash
 
 install:
-  - sh ci/install.sh
-  - source ~/.cargo/env || true
+  # prevent target re-add error from rustup
+  - if [[ $TRAVIS_OS_NAME = linux && $HOST != $TARGET ]]; then rustup target add $TARGET; fi
 
 script:
-  - bash ci/script.sh
-
-after_script: set +e
+  - ci/script.bash
 
 before_deploy:
-  - sh ci/before_deploy.sh
+  - bash ci/before_deploy.bash
 
 deploy:
   api_key:
@@ -53,18 +55,19 @@ deploy:
     tags: true
   provider: releases
   skip_cleanup: true
-
-cache: cargo
-before_cache:
-  # Travis can't cache files that are not readable by "others"
-  - chmod -R a+r $HOME/.cargo
-
-branches:
-  only:
-    # release tags
-    - /^v\d+\.\d+\.\d+.*$/
-    - master
+  on:
+    # deploy only if we push a tag
+    tags: true
+    # deploy only on stable channel that has TARGET env variable sets
+    condition: $TRAVIS_RUST_VERSION = stable && $TARGET != ""
 
 notifications:
   email:
     on_success: never
+
+# Caching
+cache:
+  directories:
+    - /home/travis/.cargo
+before_cache:
+  - rm -rf /home/travis/.cargo/registry
