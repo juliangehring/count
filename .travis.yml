@@ -29,8 +29,8 @@ matrix:
       rust: stable
       # skip the global install step
       install:
-        - cargo install --debug --force rustfmt
-      script: cargo fmt -- --check
+        - rustup component add rustfmt
+      script: cargo fmt --all -- --check
 
 before_install:
   - ci/before_install.bash
