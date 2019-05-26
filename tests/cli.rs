@@ -1,13 +1,15 @@
 use assert_cmd::prelude::{CommandCargoExt, OutputAssertExt};
-use failure::Error;
 use predicates::{
     prelude::PredicateBooleanExt,
     str::{contains, ends_with, starts_with},
 };
-use std::process::Command;
+use std::{
+    process::Command,
+    error::Error
+};
 
 #[test]
-fn test_toplevel_1k_counts() -> Result<(), Error> {
+fn test_toplevel_1k_counts() -> Result<(), Box<Error>> {
     let test_file = "tests/data/toplevel-1k.txt";
 
     let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
@@ -20,7 +22,7 @@ fn test_toplevel_1k_counts() -> Result<(), Error> {
 }
 
 #[test]
-fn test_toplevel_1k_counts_top5() -> Result<(), Error> {
+fn test_toplevel_1k_counts_top5() -> Result<(), Box<Error>> {
     let test_file = "tests/data/toplevel-1k.txt";
 
     let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
@@ -33,7 +35,7 @@ fn test_toplevel_1k_counts_top5() -> Result<(), Error> {
 }
 
 #[test]
-fn test_toplevel_1k_counts_sortby_count() -> Result<(), Error> {
+fn test_toplevel_1k_counts_sortby_count() -> Result<(), Box<Error>> {
     let test_file = "tests/data/toplevel-1k.txt";
 
     let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
@@ -50,7 +52,7 @@ fn test_toplevel_1k_counts_sortby_count() -> Result<(), Error> {
 }
 
 #[test]
-fn test_toplevel_1k_counts_sortby_key() -> Result<(), Error> {
+fn test_toplevel_1k_counts_sortby_key() -> Result<(), Box<Error>> {
     let test_file = "tests/data/toplevel-1k.txt";
 
     let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
@@ -63,7 +65,7 @@ fn test_toplevel_1k_counts_sortby_key() -> Result<(), Error> {
 }
 
 #[test]
-fn test_incorrect_file() -> Result<(), Error> {
+fn test_incorrect_file() -> Result<(), Box<Error>> {
     let test_file = "no_test_file_here";
 
     let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
