@@ -1,8 +1,15 @@
 # Rusty counting
 
+A toy project for writing a fast and convenient alternative to
+
+```sh
+sort | uniq -c | sort -k1 -rn
+```
+
+
 ## Installation
 
-Build it yourself with cargo:
+Install it yourself with cargo:
 
 ```sh
 cargo install --git https://github.com/juliangehring/count
@@ -17,10 +24,8 @@ An anecdotal benchmark: Count the top-level domains of the Alexa top 1 million w
 make benchmark
 ```
 
-| Tool                  | Time [ms] |
-| --------------------- | --------: |
-| rusty count (u8)      |        41 |
-| rusty count (LTO)     |       124 |
-| rusty count (default) |       150 |
-| awk                   |       207 |
-| unix tools            |      4101 |
+| Tool             | Time [ms] |
+| ---------------- | --------: |
+| rusty count (u8) |        39 |
+| awk              |       207 |
+| unix tools       |      4101 |
