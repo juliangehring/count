@@ -3,11 +3,8 @@
 set -ex
 
 # Incorporate TARGET env var to the build and test process
-cargo build --target "$TARGET" --verbose
+cargo build --target "$TARGET"
 
-# We cannot run arm executables on linux
-if [[ $TARGET != arm-unknown-linux-gnueabihf ]] && [[ $TARGET != aarch64-unknown-linux-gnu ]]; then
-    cargo test --target "$TARGET" --verbose
+cargo test --target "$TARGET"
 
-    cargo run --target "$TARGET" -- --top 3 tests/data/toplevel-1k.txt
-fi
+cargo run --target "$TARGET" -- --top 3 tests/data/toplevel-1k.txt
