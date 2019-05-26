@@ -24,14 +24,6 @@ matrix:
       rust: stable
       env: TARGET=x86_64-apple-darwin
 
-    # Code formatting check
-    - os: linux
-      rust: stable
-      # skip the global install step
-      install:
-        - rustup component add rustfmt
-      script: cargo fmt --all -- --check
-
 before_install:
   - ci/before_install.bash
 
