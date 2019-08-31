@@ -18,25 +18,26 @@ use structopt::{clap::arg_enum, StructOpt};
 
 arg_enum! {
     #[derive(Debug)]
+    #[allow(non_camel_case_types)]
     pub enum SortingOrder {
-        Key,
-        Count,
-        None,
+        count,
+        key,
+        none,
     }
 }
 
 #[derive(StructOpt, Debug)]
+#[structopt()]
 pub struct Config {
     #[structopt(
-        long = "sortby",
-        short = "s",
-        default_value = "Count",
+        short, long,
+        default_value = "count",
         possible_values = &SortingOrder::variants(),
         case_insensitive = true
     )]
     sort_by: SortingOrder,
-    #[structopt(long = "top")]
-    top: Option<usize>,
+    #[structopt(short, long)]
+    max_items: Option<usize>,
     #[structopt()]
     input: Option<String>,
 }
@@ -51,7 +52,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let mut counts: Vec<_> = counter.par_iter().collect();
     sort_counts(&mut counts, &config.sort_by);
 
-    let n = config.top.unwrap_or_else(|| counts.len());
+    let n = config.max_items.unwrap_or_else(|| counts.len());
 
     let stdout = stdout();
     let handle = stdout.lock();
@@ -104,13 +105,13 @@ fn sort_counts<S: Ord + Sync, T: Ord + Sync>(
     sorting_order: &SortingOrder,
 ) {
     match sorting_order {
-        SortingOrder::Key => {
+        SortingOrder::key => {
             counts.par_sort_unstable_by(|k, v| k.0.cmp(v.0).then(k.1.cmp(k.1).reverse()))
         }
-        SortingOrder::Count => {
+        SortingOrder::count => {
             counts.par_sort_unstable_by(|k, v| k.1.cmp(v.1).reverse().then(k.0.cmp(v.0)))
         }
-        SortingOrder::None => (),
+        SortingOrder::none => (),
     }
 }
 
@@ -144,7 +145,7 @@ mod tests {
         let mut input = vec![(&"b", &3), (&"c", &2), (&"a", &1)];
         let output = vec![(&"a", &1), (&"b", &3), (&"c", &2)];
 
-        sort_counts(&mut input, &SortingOrder::Key);
+        sort_counts(&mut input, &SortingOrder::key);
 
         assert_eq!(input, output);
     }
@@ -154,7 +155,7 @@ mod tests {
         let mut input = vec![(&"c", &2), (&"a", &1), (&"b", &3)];
         let output = vec![(&"b", &3), (&"c", &2), (&"a", &1)];
 
-        sort_counts(&mut input, &SortingOrder::Count);
+        sort_counts(&mut input, &SortingOrder::count);
 
         assert_eq!(input, output);
     }

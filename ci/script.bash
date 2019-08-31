@@ -7,4 +7,4 @@ cargo build --target "$TARGET"
 
 cargo test --target "$TARGET"
 
-cargo run --target "$TARGET" -- --top 3 tests/data/toplevel-1k.txt
+cargo run --target "$TARGET" -- --max-items 3 tests/data/toplevel-1k.txt
