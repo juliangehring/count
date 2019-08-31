@@ -43,7 +43,7 @@ pub struct Config {
     input: Option<String>,
 }
 
-pub fn run(config: Config) -> Result<(), Box<Error>> {
+pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let sig_pipe = watch_sig_pipe()?;
 
     let reader = create_reader(&config.input)?;
@@ -63,15 +63,15 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
     Ok(())
 }
 
-fn create_reader(input: &Option<String>) -> Result<Box<BufRead>, Box<Error>> {
-    let reader: Box<BufRead> = match input {
+fn create_reader(input: &Option<String>) -> Result<Box<dyn BufRead>, Box<dyn Error>> {
+    let reader: Box<dyn BufRead> = match input {
         Some(file_name) => Box::new(BufReader::new(File::open(file_name)?)),
         None => Box::new(BufReader::new(stdin())),
     };
     Ok(reader)
 }
 
-fn count_items(mut reader: Box<BufRead>) -> Result<HashMap<Vec<u8>, u64>, Box<Error>> {
+fn count_items(mut reader: Box<dyn BufRead>) -> Result<HashMap<Vec<u8>, u64>, Box<dyn Error>> {
     let mut counter: HashMap<_, u64> = Default::default();
 
     let mut buf = Vec::with_capacity(64);
@@ -121,7 +121,7 @@ fn output_counts<T: Write>(
     counts: Vec<(&Vec<u8>, &u64)>,
     n: usize,
     sig_pipe: Arc<AtomicBool>,
-) -> Result<(), Box<Error>> {
+) -> Result<(), Box<dyn Error>> {
     for (key, count) in counts.into_iter().take(n) {
         writeln!(io, "{}\t{}", String::from_utf8(key.to_owned())?, count)?;
         if sig_pipe.load(Ordering::Relaxed) {
@@ -131,7 +131,7 @@ fn output_counts<T: Write>(
     Ok(())
 }
 
-fn watch_sig_pipe() -> Result<Arc<AtomicBool>, Box<Error>> {
+fn watch_sig_pipe() -> Result<Arc<AtomicBool>, Box<dyn Error>> {
     let sig_pipe = Arc::new(AtomicBool::new(false));
     signal_hook::flag::register(signal_hook::SIGPIPE, Arc::clone(&sig_pipe))?;
     Ok(sig_pipe)
