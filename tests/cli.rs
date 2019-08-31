@@ -9,7 +9,7 @@ use std::{
 };
 
 #[test]
-fn test_toplevel_1k_counts() -> Result<(), Box<Error>> {
+fn test_toplevel_1k_counts() -> Result<(), Box<dyn Error>> {
     let test_file = "tests/data/toplevel-1k.txt";
 
     let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
@@ -22,7 +22,7 @@ fn test_toplevel_1k_counts() -> Result<(), Box<Error>> {
 }
 
 #[test]
-fn test_toplevel_1k_counts_top5() -> Result<(), Box<Error>> {
+fn test_toplevel_1k_counts_top5() -> Result<(), Box<dyn Error>> {
     let test_file = "tests/data/toplevel-1k.txt";
 
     let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
@@ -35,7 +35,7 @@ fn test_toplevel_1k_counts_top5() -> Result<(), Box<Error>> {
 }
 
 #[test]
-fn test_toplevel_1k_counts_sortby_count() -> Result<(), Box<Error>> {
+fn test_toplevel_1k_counts_sortby_count() -> Result<(), Box<dyn Error>> {
     let test_file = "tests/data/toplevel-1k.txt";
 
     let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
@@ -52,7 +52,7 @@ fn test_toplevel_1k_counts_sortby_count() -> Result<(), Box<Error>> {
 }
 
 #[test]
-fn test_toplevel_1k_counts_sortby_key() -> Result<(), Box<Error>> {
+fn test_toplevel_1k_counts_sortby_key() -> Result<(), Box<dyn Error>> {
     let test_file = "tests/data/toplevel-1k.txt";
 
     let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
@@ -65,7 +65,7 @@ fn test_toplevel_1k_counts_sortby_key() -> Result<(), Box<Error>> {
 }
 
 #[test]
-fn test_incorrect_file() -> Result<(), Box<Error>> {
+fn test_incorrect_file() -> Result<(), Box<dyn Error>> {
     let test_file = "no_test_file_here";
 
     let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
