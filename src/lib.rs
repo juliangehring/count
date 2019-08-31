@@ -31,10 +31,8 @@ pub struct Config {
         long = "sortby",
         short = "s",
         default_value = "Count",
-        raw(
-            possible_values = "&SortingOrder::variants()",
-            case_insensitive = "true"
-        )
+        possible_values = &SortingOrder::variants(),
+        case_insensitive = true
     )]
     sort_by: SortingOrder,
     #[structopt(long = "top")]
