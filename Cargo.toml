@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 hashbrown = {version = "0.6.0", features = ["rayon"]}
-rayon = "1.1.0"
+rayon = "1.2.0"
 signal-hook = "0.1.10"
 structopt = "0.3.0"
 
