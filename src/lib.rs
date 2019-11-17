@@ -55,9 +55,10 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let n = config.max_items.unwrap_or_else(|| counts.len());
 
     let stdout = stdout();
-    let handle = stdout.lock();
+    let stdout = stdout.lock();
+    let stdout = std::io::BufWriter::new(stdout);
 
-    output_counts(handle, counts, n, sig_pipe)?;
+    output_counts(stdout, counts, n, sig_pipe)?;
 
     Ok(())
 }
@@ -67,6 +68,7 @@ fn create_reader(input: &Option<String>) -> Result<Box<dyn BufRead>, Box<dyn Err
         Some(file_name) => Box::new(BufReader::new(File::open(file_name)?)),
         None => Box::new(BufReader::new(stdin())),
     };
+
     Ok(reader)
 }
 
@@ -127,12 +129,14 @@ fn output_counts<T: Write>(
             break;
         }
     }
+
     Ok(())
 }
 
 fn watch_sig_pipe() -> Result<Arc<AtomicBool>, Box<dyn Error>> {
     let sig_pipe = Arc::new(AtomicBool::new(false));
     signal_hook::flag::register(signal_hook::SIGPIPE, Arc::clone(&sig_pipe))?;
+
     Ok(sig_pipe)
 }
 
@@ -159,5 +163,4 @@ mod tests {
 
         assert_eq!(input, output);
     }
-
 }
