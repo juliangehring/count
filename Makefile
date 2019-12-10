@@ -1,6 +1,7 @@
 TMP_DIR=/Volumes/ramdisk
 TEST_FILE=$(TMP_DIR)/top-1m-toplevel.txt
-NUM_CORES=$(nproc --all)
+NUM_CORES=$(shell nproc --all)
+MAX_ITEMS=100
 
 # default target
 .PHONY: all
@@ -20,14 +21,14 @@ top-1m.csv:
 
 # benchmarking
 .PHONY: benchmark
-benchmark: bench-unix bench-awk bench-bin
+benchmark: bench-bin
 
 bench-unix: $(TEST_FILE)
-	hyperfine -m 10 --style basic --warmup 1 "gsort --parallel=4 $< | uniq -c | gsort --parallel=4 -k1,1 -rn | head -n 10"
+	hyperfine -m 20 --style basic --warmup 3 "gsort --parallel=$(NUM_CORES) $< | guniq -c | gsort --parallel=$(NUM_CORES) -k1,1 -rn | ghead -n $(MAX_ITEMS)"
 
 bench-awk: $(TEST_FILE)
-	hyperfine -m 200 --style basic --warmup 3 "gawk -f tests/utils/pattern.awk $(TEST_FILE) | head -n 100"
+	hyperfine -m 250 --style basic --warmup 10 "gawk -f tests/utils/pattern.awk $(TEST_FILE) | ghead -n $(MAX_ITEMS)"
 
 bench-bin: $(TEST_FILE)
 	cargo build --release && \
-	hyperfine -m 200 --style basic --warmup 3 "target/release/count --top 100 $<"
+	hyperfine -m 250 --style basic --warmup 10 "target/release/count --max-items $(MAX_ITEMS) $<"
