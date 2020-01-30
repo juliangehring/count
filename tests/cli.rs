@@ -3,10 +3,7 @@ use predicates::{
     prelude::PredicateBooleanExt,
     str::{contains, ends_with, starts_with},
 };
-use std::{
-    process::Command,
-    error::Error
-};
+use std::{error::Error, process::Command};
 
 #[test]
 fn test_toplevel_1k_counts() -> Result<(), Box<dyn Error>> {
@@ -39,11 +36,7 @@ fn test_toplevel_1k_counts_sortby_count() -> Result<(), Box<dyn Error>> {
     let test_file = "tests/data/toplevel-1k.txt";
 
     let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
-    cmd.arg("-m")
-        .arg("5")
-        .arg("-s")
-        .arg("count")
-        .arg(test_file);
+    cmd.arg("-m").arg("5").arg("-s").arg("count").arg(test_file);
     cmd.assert()
         .success()
         .stdout(starts_with("com\t626\n").and(ends_with("cn\t25\n")));
