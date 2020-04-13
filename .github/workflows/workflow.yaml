@@ -1,3 +1,5 @@
+# Modified from: https://raw.githubusercontent.com/starship/starship/master/.github/workflows/workflow.yml
+
 name: Workflow
 on:
   push:
@@ -138,16 +140,16 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-            name: starship-x86_64-unknown-linux-gnu.tar.gz
+            name: count-x86_64-unknown-linux-gnu.tar.gz
           - target: x86_64-unknown-linux-musl
             os: ubuntu-latest
-            name: starship-x86_64-unknown-linux-musl.tar.gz
+            name: count-x86_64-unknown-linux-musl.tar.gz
           - target: x86_64-apple-darwin
             os: macOS-latest
-            name: starship-x86_64-apple-darwin.tar.gz
+            name: count-x86_64-apple-darwin.tar.gz
           - target: x86_64-pc-windows-msvc
             os: windows-latest
-            name: starship-x86_64-pc-windows-msvc.zip
+            name: count-x86_64-pc-windows-msvc.zip
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -178,20 +180,12 @@ jobs:
           command: build
           args: --release --features tls-vendored --target ${{ matrix.target }}
 
-      - name: Prepare build artifacts [Windows]
-        if: matrix.os == 'windows-latest'
-        run: |
-          cd target/${{ matrix.target }}/release
-          strip starship.exe
-          7z a ../../../${{ matrix.name }} starship.exe
-          cd -
-
       - name: Prepare build artifacts [-nix]
         if: matrix.os != 'windows-latest'
         run: |
           cd target/${{ matrix.target }}/release
-          strip starship
-          tar czvf ../../../${{ matrix.name }} starship
+          strip count
+          tar czvf ../../../${{ matrix.name }} count
           cd -
 
       - name: Upload build artifact
@@ -199,3 +193,45 @@ jobs:
         with:
           name: ${{ matrix.name }}
           path: ${{ matrix.name }}
+
+  # Create GitHub release with Rust build targets and release notes
+  github_release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    name: Create GitHub Release
+    needs: github_build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      # These can be squashed when https://github.com/actions/download-artifact/issues/6 is closed
+      - name: Download releases from github_build
+        uses: actions/download-artifact@v1
+        with:
+          name: count-x86_64-unknown-linux-gnu.tar.gz
+          path: .
+      - name: Download releases from github_build
+        uses: actions/download-artifact@v1
+        with:
+          name: count-x86_64-unknown-linux-musl.tar.gz
+          path: .
+      - name: Download releases from github_build
+        uses: actions/download-artifact@v1
+        with:
+          name: count-x86_64-apple-darwin.tar.gz
+          path: .
+
+      - name: Generate checksums
+        run: for file in count-*; do openssl dgst -sha256 -r "$file" | awk '{print $1}' > "${file}.sha256"; done
+
+      - name: Create GitHub release ${{ matrix.target }}
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            count-x86_64-unknown-linux-gnu.tar.gz
+            count-x86_64-unknown-linux-gnu.tar.gz.sha256
+            count-x86_64-unknown-linux-musl.tar.gz
+            count-x86_64-unknown-linux-musl.tar.gz.sha256
+            count-x86_64-apple-darwin.tar.gz
+            count-x86_64-apple-darwin.tar.gz.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
