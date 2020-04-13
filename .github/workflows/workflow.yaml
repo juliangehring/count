@@ -49,8 +49,8 @@ jobs:
 
   # Run a security audit on dependencies
   cargo_audit:
+    # if: startsWith(github.ref, 'refs/tags/v')
     name: Cargo Audit [Security]
-    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
