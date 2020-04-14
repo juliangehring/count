@@ -47,23 +47,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-targets --all-features -- -D clippy::all
 
-  # Run a security audit on dependencies
-  cargo_audit:
-    if: startsWith(github.ref, 'refs/tags/v')
-    name: Cargo Audit [Security]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-      - run: cargo install --force cargo-audit
-      - run: cargo generate-lockfile
-      - uses: actions-rs/cargo@v1
-        with:
-          command: audit
-
   # Ensure that the project could be successfully compiled
   cargo_check:
     name: Compile
@@ -126,12 +109,29 @@ jobs:
           command: test
           args: -- -Z unstable-options --include-ignored
 
+  # Run a security audit on dependencies
+  cargo_audit:
+    if: startsWith(github.ref, 'refs/tags/v')
+    name: Cargo Audit [Security] @ release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - run: cargo install --force cargo-audit
+      - run: cargo generate-lockfile
+      - uses: actions-rs/cargo@v1
+        with:
+          command: audit
+
   # Build sources for every OS
   github_build:
     if: startsWith(github.ref, 'refs/tags/v')
-    name: Build release binaries
+    name: Build release binaries @ release
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         target:
           - x86_64-unknown-linux-gnu
@@ -175,7 +175,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release --features tls-vendored --target ${{ matrix.target }}
+          args: --release --target ${{ matrix.target }}
 
       - name: Prepare build artifacts [-nix]
         if: matrix.os != 'windows-latest'
@@ -194,7 +194,7 @@ jobs:
   # Create GitHub release with Rust build targets and release notes
   github_release:
     if: startsWith(github.ref, 'refs/tags/v')
-    name: Create GitHub Release
+    name: Create GitHub Release @ release
     needs: github_build
     runs-on: ubuntu-latest
     steps:
