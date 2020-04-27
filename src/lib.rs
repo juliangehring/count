@@ -3,12 +3,12 @@ use rayon::{
     prelude::{IntoParallelRefIterator, ParallelIterator},
     slice::ParallelSliceMut,
 };
-use signal_hook;
+use signal_hook::{flag, SIGPIPE};
 use std::{
     cmp::Ord,
     error::Error,
     fs::File,
-    io::{stdin, stdout, BufRead, BufReader, Write},
+    io::{stdin, stdout, BufRead, BufReader, BufWriter, Write},
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
@@ -56,7 +56,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
     let stdout = stdout();
     let stdout = stdout.lock();
-    let stdout = std::io::BufWriter::new(stdout);
+    let stdout = BufWriter::new(stdout);
 
     output_counts(stdout, counts, n, sig_pipe)?;
 
@@ -135,7 +135,7 @@ fn output_counts<T: Write>(
 
 fn watch_sig_pipe() -> Result<Arc<AtomicBool>, Box<dyn Error>> {
     let sig_pipe = Arc::new(AtomicBool::new(false));
-    signal_hook::flag::register(signal_hook::SIGPIPE, Arc::clone(&sig_pipe))?;
+    flag::register(SIGPIPE, Arc::clone(&sig_pipe))?;
 
     Ok(sig_pipe)
 }
