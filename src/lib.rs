@@ -7,7 +7,7 @@ use std::{
     cmp::Ord,
     error::Error,
     fs::File,
-    io::{stdin, stdout, BufRead, BufReader, BufWriter, Write}
+    io::{stdin, stdout, BufRead, BufReader, BufWriter, Write},
 };
 use structopt::{clap::arg_enum, StructOpt};
 
@@ -113,7 +113,7 @@ fn sort_counts<S: Ord + Sync, T: Ord + Sync>(
 fn output_counts<T: Write>(
     mut io: T,
     counts: Vec<(&Vec<u8>, &u64)>,
-    n: usize
+    n: usize,
 ) -> Result<(), Box<dyn Error>> {
     for (key, count) in counts.into_iter().take(n) {
         writeln!(io, "{}\t{}", String::from_utf8(key.to_owned())?, count)?;
