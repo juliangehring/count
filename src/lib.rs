@@ -3,16 +3,11 @@ use rayon::{
     prelude::{IntoParallelRefIterator, ParallelIterator},
     slice::ParallelSliceMut,
 };
-use signal_hook::{flag, SIGPIPE};
 use std::{
     cmp::Ord,
     error::Error,
     fs::File,
     io::{stdin, stdout, BufRead, BufReader, BufWriter, Write},
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-    },
 };
 use structopt::{clap::arg_enum, StructOpt};
 
@@ -43,8 +38,6 @@ pub struct Config {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let sig_pipe = watch_sig_pipe()?;
-
     let reader = create_reader(&config.input)?;
 
     let counter = count_items(reader)?;
@@ -58,7 +51,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let stdout = stdout.lock();
     let stdout = BufWriter::new(stdout);
 
-    output_counts(stdout, counts, n, sig_pipe)?;
+    output_counts(stdout, counts, n)?;
 
     Ok(())
 }
@@ -121,23 +114,12 @@ fn output_counts<T: Write>(
     mut io: T,
     counts: Vec<(&Vec<u8>, &u64)>,
     n: usize,
-    sig_pipe: Arc<AtomicBool>,
 ) -> Result<(), Box<dyn Error>> {
     for (key, count) in counts.into_iter().take(n) {
         writeln!(io, "{}\t{}", String::from_utf8(key.to_owned())?, count)?;
-        if sig_pipe.load(Ordering::Relaxed) {
-            break;
-        }
     }
 
     Ok(())
-}
-
-fn watch_sig_pipe() -> Result<Arc<AtomicBool>, Box<dyn Error>> {
-    let sig_pipe = Arc::new(AtomicBool::new(false));
-    flag::register(SIGPIPE, Arc::clone(&sig_pipe))?;
-
-    Ok(sig_pipe)
 }
 
 #[cfg(test)]
