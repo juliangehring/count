@@ -26,6 +26,6 @@ make benchmark
 
 | Tool             | Time [ms] |
 | ---------------- | --------: |
-| rusty count (u8) |        30 |
-| awk              |       195 |
+| rusty count (u8) |        35 |
+| awk              |       160 |
 | unix tools       |      3842 |
