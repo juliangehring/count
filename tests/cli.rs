@@ -63,9 +63,7 @@ fn test_incorrect_file() -> Result<(), Box<dyn Error>> {
 
     let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
     cmd.arg(test_file);
-    cmd.assert()
-        .failure()
-        .stderr(contains("No such file or directory"));
+    cmd.assert().failure().stderr(contains("file")); // Least common demoninator for nix and windows
 
     Ok(())
 }
