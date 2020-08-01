@@ -8,6 +8,7 @@ use std::{
     error::Error,
     fs::File,
     io::{stdin, stdout, BufRead, BufReader, BufWriter, Write},
+    path::PathBuf,
 };
 use structopt::{clap::arg_enum, StructOpt};
 
@@ -33,8 +34,8 @@ pub struct Config {
     sort_by: SortingOrder,
     #[structopt(short, long)]
     max_items: Option<usize>,
-    #[structopt()]
-    input: Option<String>,
+    #[structopt(parse(from_os_str))]
+    input: Option<PathBuf>,
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
@@ -56,7 +57,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn create_reader(input: &Option<String>) -> Result<Box<dyn BufRead>, Box<dyn Error>> {
+fn create_reader(input: &Option<PathBuf>) -> Result<Box<dyn BufRead>, Box<dyn Error>> {
     let reader: Box<dyn BufRead> = match input {
         Some(file_name) => Box::new(BufReader::new(File::open(file_name)?)),
         None => Box::new(BufReader::new(stdin())),
