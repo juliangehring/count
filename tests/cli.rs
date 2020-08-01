@@ -65,7 +65,7 @@ fn test_incorrect_file() -> Result<(), Box<dyn Error>> {
     cmd.arg(test_file);
     cmd.assert()
         .failure()
-        .stderr(contains("No such file or directory"));
+        .stderr(contains("file")); // Least common demoninator for nix and windows
 
     Ok(())
 }
