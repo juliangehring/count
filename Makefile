@@ -27,8 +27,8 @@ bench-unix: $(TEST_FILE)
 	hyperfine -m 20 --style basic --warmup 3 "gsort --parallel=$(NUM_CORES) $< | guniq -c | gsort --parallel=$(NUM_CORES) -k1,1 -rn | ghead -n $(MAX_ITEMS)"
 
 bench-awk: $(TEST_FILE)
-	hyperfine -m 250 --style basic --warmup 10 "gawk -f tests/utils/pattern.awk $(TEST_FILE) | ghead -n $(MAX_ITEMS)"
+	hyperfine -m 500 --style basic --warmup 10 "gawk -f tests/utils/pattern.awk $(TEST_FILE) | ghead -n $(MAX_ITEMS)"
 
 bench-bin: $(TEST_FILE)
 	cargo build --release && \
-	hyperfine -m 250 --style basic --warmup 10 "target/release/count --max-items $(MAX_ITEMS) $<"
+	hyperfine -m 1000 --style basic --warmup 10 "target/release/count --max-items $(MAX_ITEMS) $<"
