@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 hashbrown = {version = "0.11.2", features = ["rayon"]}
+partial_sort = "0.1.2"
 rayon = "1.5.0"
 structopt = "0.3.21"
 
