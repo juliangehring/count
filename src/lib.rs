@@ -41,7 +41,7 @@ pub struct Config {
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let reader = create_reader(&config.input)?;
 
-    let counter = count_items(reader)?;
+    let counter = count_items(reader);
 
     let mut counts: Vec<_> = counter.par_iter().collect();
     sort_counts(&mut counts, &config.sort_by);
@@ -66,7 +66,7 @@ fn create_reader(input: &Option<PathBuf>) -> Result<Box<dyn BufRead>, Box<dyn Er
     Ok(reader)
 }
 
-fn count_items(mut reader: Box<dyn BufRead>) -> Result<HashMap<Vec<u8>, u64>, Box<dyn Error>> {
+fn count_items(mut reader: Box<dyn BufRead>) -> HashMap<Vec<u8>, u64> {
     let mut counter: HashMap<_, u64> = Default::default();
 
     let mut buf = Vec::with_capacity(64);
@@ -93,7 +93,7 @@ fn count_items(mut reader: Box<dyn BufRead>) -> Result<HashMap<Vec<u8>, u64>, Bo
         buf.clear();
     }
 
-    Ok(counter)
+    counter
 }
 
 fn sort_counts<S: Ord + Sync, T: Ord + Sync>(
