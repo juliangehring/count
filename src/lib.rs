@@ -1,4 +1,5 @@
 use hashbrown::HashMap;
+use partial_sort::PartialSort;
 use rayon::{
     prelude::{IntoParallelRefIterator, ParallelIterator},
     slice::ParallelSliceMut,
@@ -11,7 +12,6 @@ use std::{
     path::PathBuf,
 };
 use structopt::{clap::arg_enum, StructOpt};
-use partial_sort::PartialSort;
 
 arg_enum! {
     #[derive(Debug)]
@@ -98,7 +98,7 @@ fn count_items(mut reader: Box<dyn BufRead>) -> HashMap<Vec<u8>, u64> {
 fn sort_counts<S: Ord + Sync, T: Ord + Sync>(
     counts: &mut Vec<(&S, &T)>,
     sorting_order: &SortingOrder,
-    num_items: Option<usize>
+    num_items: Option<usize>,
 ) {
     match (sorting_order, num_items) {
         (SortingOrder::key, Some(n)) => {
@@ -106,7 +106,7 @@ fn sort_counts<S: Ord + Sync, T: Ord + Sync>(
         }
         (SortingOrder::count, Some(n)) => {
             counts.partial_sort(n, |k, v| k.1.cmp(v.1).reverse().then(k.0.cmp(v.0)))
-        },
+        }
         (SortingOrder::key, None) => {
             counts.par_sort_unstable_by(|k, v| k.0.cmp(v.0).then(k.1.cmp(k.1).reverse()))
         }
