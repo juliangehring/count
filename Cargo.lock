@@ -110,6 +110,7 @@ version = "0.2.2"
 dependencies = [
  "assert_cmd",
  "hashbrown",
+ "partial_sort",
  "predicates",
  "rayon",
  "structopt",
@@ -283,6 +284,12 @@ name = "once_cell"
 version = "1.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af8b08b04175473088b46763e51ee54da5f9a164bc162f615b91bc179dbf15a3"
+
+[[package]]
+name = "partial_sort"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "00cf940f4ef65cb3c91884b1897d846adbdd54896b2db1936a23e43526b59c91"
 
 [[package]]
 name = "predicates"
