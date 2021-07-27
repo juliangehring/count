@@ -11,7 +11,7 @@ structopt = "0.3.22"
 
 [dev-dependencies]
 assert_cmd = "1.0.7"
-predicates = "1.0.8"
+predicates = "2.0.1"
 
 [profile.release]
 lto = true
