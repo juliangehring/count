@@ -10,7 +10,7 @@ rayon = "1.5.1"
 structopt = "0.3.22"
 
 [dev-dependencies]
-assert_cmd = "1.0.7"
+assert_cmd = "2.0.1"
 predicates = "2.0.1"
 
 [profile.release]
