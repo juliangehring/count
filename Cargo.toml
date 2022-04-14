@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 hashbrown = {version = "0.11.2", features = ["rayon"]}
-rayon = "1.5.1"
+rayon = "1.5.2"
 structopt = "0.3.22"
 
 [dev-dependencies]
