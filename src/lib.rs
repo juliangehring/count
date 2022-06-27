@@ -1,5 +1,6 @@
 use clap::{Parser, ValueEnum};
 use hashbrown::HashMap;
+use partial_sort::PartialSort;
 use rayon::{
     prelude::{IntoParallelRefIterator, ParallelIterator},
     slice::ParallelSliceMut,
@@ -43,15 +44,14 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let counter = count_items(reader);
 
     let mut counts: Vec<_> = counter.par_iter().collect();
-    sort_counts(&mut counts, &config.sort_by);
 
-    let n = config.max_items.unwrap_or(counts.len());
+    sort_counts(&mut counts, &config.sort_by, config.max_items);
 
     let stdout = stdout();
     let stdout = stdout.lock();
     let stdout = BufWriter::new(stdout);
 
-    output_counts(stdout, counts, n)?;
+    output_counts(stdout, counts, config.max_items)?;
 
     Ok(())
 }
@@ -98,23 +98,31 @@ fn count_items(mut reader: Box<dyn BufRead>) -> HashMap<Vec<u8>, u64> {
 fn sort_counts<S: Ord + Sync, T: Ord + Sync>(
     counts: &mut Vec<(&S, &T)>,
     sorting_order: &SortingOrder,
+    num_items: Option<usize>,
 ) {
-    match sorting_order {
-        SortingOrder::key => {
+    match (sorting_order, num_items) {
+        (SortingOrder::key, Some(n)) => {
+            counts.partial_sort(n, |k, v| k.0.cmp(v.0).then(k.1.cmp(k.1).reverse()))
+        }
+        (SortingOrder::count, Some(n)) => {
+            counts.partial_sort(n, |k, v| k.1.cmp(v.1).reverse().then(k.0.cmp(v.0)))
+        }
+        (SortingOrder::key, None) => {
             counts.par_sort_unstable_by(|k, v| k.0.cmp(v.0).then(k.1.cmp(k.1).reverse()))
         }
-        SortingOrder::count => {
+        (SortingOrder::count, None) => {
             counts.par_sort_unstable_by(|k, v| k.1.cmp(v.1).reverse().then(k.0.cmp(v.0)))
         }
-        SortingOrder::none => (),
+        (SortingOrder::none, _) => (),
     }
 }
 
 fn output_counts<T: Write>(
     mut io: T,
     counts: Vec<(&Vec<u8>, &u64)>,
-    n: usize,
+    num_items: Option<usize>,
 ) -> Result<(), Box<dyn Error>> {
+    let n = num_items.unwrap_or(counts.len());
     for (key, count) in counts.into_iter().take(n) {
         writeln!(io, "{}\t{}", String::from_utf8(key.to_owned())?, count)?;
     }
@@ -127,21 +135,41 @@ mod tests {
     use super::{sort_counts, SortingOrder};
 
     #[test]
-    fn test_sort_counts_by_key() {
+    fn test_full_sort_counts_by_key() {
         let mut input = vec![(&"b", &3), (&"c", &2), (&"a", &1)];
         let output = vec![(&"a", &1), (&"b", &3), (&"c", &2)];
 
-        sort_counts(&mut input, &SortingOrder::key);
+        sort_counts(&mut input, &SortingOrder::key, None);
 
         assert_eq!(input, output);
     }
 
     #[test]
-    fn test_sort_counts_by_counts() {
+    fn test_partial_sort_counts_by_key() {
+        let mut input = vec![(&"b", &3), (&"c", &2), (&"a", &1)];
+        let output = vec![(&"a", &1), (&"b", &3), (&"c", &2)];
+
+        sort_counts(&mut input, &SortingOrder::key, Some(2));
+
+        assert_eq!(input, output);
+    }
+
+    #[test]
+    fn test_full_sort_counts_by_counts() {
         let mut input = vec![(&"c", &2), (&"a", &1), (&"b", &3)];
         let output = vec![(&"b", &3), (&"c", &2), (&"a", &1)];
 
-        sort_counts(&mut input, &SortingOrder::count);
+        sort_counts(&mut input, &SortingOrder::count, None);
+
+        assert_eq!(input, output);
+    }
+
+    #[test]
+    fn test_partial_sort_counts_by_counts() {
+        let mut input = vec![(&"c", &2), (&"a", &1), (&"b", &3)];
+        let output = vec![(&"b", &3), (&"c", &2), (&"a", &1)];
+
+        sort_counts(&mut input, &SortingOrder::count, Some(2));
 
         assert_eq!(input, output);
     }
