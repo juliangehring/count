@@ -1,3 +1,4 @@
+use clap::{Parser, ValueEnum};
 use hashbrown::HashMap;
 use rayon::{
     prelude::{IntoParallelRefIterator, ParallelIterator},
@@ -10,31 +11,29 @@ use std::{
     io::{stdin, stdout, BufRead, BufReader, BufWriter, Write},
     path::PathBuf,
 };
-use structopt::{clap::arg_enum, StructOpt};
 
-arg_enum! {
-    #[derive(Debug)]
-    #[allow(non_camel_case_types)]
-    pub enum SortingOrder {
-        count,
-        key,
-        none,
-    }
+#[derive(Clone, Debug, Parser, ValueEnum)]
+#[allow(non_camel_case_types)]
+pub enum SortingOrder {
+    count,
+    key,
+    none,
 }
 
-#[derive(StructOpt, Debug)]
-#[structopt()]
+#[derive(Parser, Debug)]
 pub struct Config {
-    #[structopt(
-        short, long,
+    #[clap(
+        short,
+        long,
         default_value = "count",
-        possible_values = &SortingOrder::variants(),
-        case_insensitive = true
+        case_insensitive = true,
+        arg_enum,
+        value_parser
     )]
     sort_by: SortingOrder,
-    #[structopt(short, long)]
+    #[clap(short, long)]
     max_items: Option<usize>,
-    #[structopt(parse(from_os_str))]
+    #[clap(parse(from_os_str))]
     input: Option<PathBuf>,
 }
 
@@ -46,7 +45,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let mut counts: Vec<_> = counter.par_iter().collect();
     sort_counts(&mut counts, &config.sort_by);
 
-    let n = config.max_items.unwrap_or_else(|| counts.len());
+    let n = config.max_items.unwrap_or(counts.len());
 
     let stdout = stdout();
     let stdout = stdout.lock();
@@ -125,7 +124,7 @@ fn output_counts<T: Write>(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{sort_counts, SortingOrder};
 
     #[test]
     fn test_sort_counts_by_key() {

@@ -30,5 +30,5 @@ bench-awk: $(TEST_FILE)
 	hyperfine -m 500 --style basic --warmup 10 "gawk -f tests/utils/pattern.awk $(TEST_FILE) | ghead -n $(MAX_ITEMS)"
 
 bench-bin: $(TEST_FILE)
-	cargo build --release && \
+	RUSTFLAGS="-C target-cpu=native" cargo build --release && \
 	hyperfine -m 1000 --style basic --warmup 10 "target/release/count --max-items $(MAX_ITEMS) $<"

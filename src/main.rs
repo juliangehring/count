@@ -1,10 +1,10 @@
+use clap::Parser;
 use std::process::exit;
-use structopt::StructOpt;
 
 use count::{run, Config};
 
 fn main() {
-    let config = Config::from_args();
+    let config = Config::parse();
 
     if let Err(err) = run(config) {
         eprintln!("{}", err);
