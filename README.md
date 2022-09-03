@@ -6,6 +6,18 @@ A toy project for writing a fast and convenient alternative to
 sort | uniq -c | sort -k1 -rn
 ```
 
+## Build
+
+Build it yourself with cargo:
+
+```sh
+cd 
+git clone https://github.com/juliangehring/count
+cd count
+cargo build --release
+cd
+
+```
 
 ## Installation
 
