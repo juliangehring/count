@@ -5,9 +5,9 @@ authors = ["Julian Gehring"]
 edition = "2021"
 
 [dependencies]
-hashbrown = { version = "0.12.1", features = ["rayon"] }
+hashbrown = { version = "0.12.3", features = ["rayon"] }
 rayon = "1.5.3"
-clap = { version = "3.2.6", features = [
+clap = { version = "4.0.10", features = [
     "derive",
     "std",
 ], default-features = false }

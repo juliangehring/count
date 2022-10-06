@@ -27,14 +27,14 @@ pub struct Config {
         short,
         long,
         default_value = "count",
-        case_insensitive = true,
-        arg_enum,
+        ignore_case(true),
+        value_enum,
         value_parser
     )]
     sort_by: SortingOrder,
     #[clap(short, long)]
     max_items: Option<usize>,
-    #[clap(parse(from_os_str))]
+    #[clap(value_parser)]
     input: Option<PathBuf>,
 }
 
